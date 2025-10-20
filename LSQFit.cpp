@@ -75,6 +75,17 @@ int main(int argc, char **argv){
   auto tgl = new TGraphErrors(npoints,lx,ly,0,ley);
   tgl->SetTitle("Pseudoexperiment;x;y"); // An example of one pseudo experiment
   tgl->Draw("alp");
+  
+  // --- Fit the sample data and plot the best-fit curve ---
+TF1 fitSample("fitSample","[0] + [1]*log(x) + [2]*log(x)*log(x)", xmin, xmax);
+TFitResultPtr resSample = tgl->Fit(&fitSample, "QSN"); // Quiet, no drawing
+fitSample.SetLineColor(kRed);
+fitSample.SetLineWidth(2);
+fitSample.Draw("same");
+
+// Save to PDF as first page
+tc->Print("LSQFitROOT.pdf(");
+
   tc->Draw();
 
   TH2F *h1 = new TH2F("h1","Parameter b vs a;a;b",100,0,2,100,0,2);

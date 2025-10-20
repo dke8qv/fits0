@@ -5,7 +5,6 @@ from matplotlib.backends.backend_pdf import PdfPages
 from math import log
 from random import gauss
 
-# --- original settings ---
 xmin=1.0
 xmax=20.0
 npoints=12       
@@ -108,11 +107,42 @@ print("Mean chi2 =", mean_chi2, " Expected =", exp_mean)
 print("Std chi2  =", std_chi2,  " Expected =", exp_std)
 print("Mean reduced chi2 =", mean_chi2_r)
 
-# --- save to PDF ---
+# --- generate one dataset again and plot fit ---
+getX(lx)
+getY(lx, ly, ley)
+
+A = np.zeros((npoints,3))
+for i in range(npoints):
+    L = log(lx[i])
+    A[i,0] = 1
+    A[i,1] = L
+    A[i,2] = L*L
+
+W = np.diag(1.0/ley**2)
+AtW = A.T @ W
+cov = inv(AtW @ A)
+p_fit = cov @ (AtW @ ly)
+
+x_smooth = np.linspace(xmin, xmax, 200)
+y_fit = p_fit[0] + p_fit[1]*np.log(x_smooth) + p_fit[2]*np.log(x_smooth)**2
+
+# --- save all figures to PDF ---
 with PdfPages('LSQFit.pdf') as pdf:
     pdf.savefig(fig1)
     pdf.savefig(fig2)
 
+    # plot the fit with data
+    plt.figure(figsize=(8,6))
+    plt.errorbar(lx, ly, yerr=ley, fmt='o', label="Data with error bars")
+    plt.plot(x_smooth, y_fit, label=f"Fit: a={p_fit[0]:.2f}, b={p_fit[1]:.2f}, c={p_fit[2]:.2f}")
+    plt.xlabel("x")
+    plt.ylabel("y")
+    plt.title("Least Squares Fit on One Dataset")
+    plt.legend()
+    pdf.savefig()
+    plt.close()
+
+    # comments page
     plt.figure()
     plt.axis('off')
     plt.text(0.01, 0.9, "Comments:", fontsize=14)
@@ -126,4 +156,5 @@ with PdfPages('LSQFit.pdf') as pdf:
 
 print("Saved LSQFit.pdf")
 input("Press Enter to exit")
+
 
